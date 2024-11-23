@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Player</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #f9f9f9;
+        }
+
+        .player-container {
+            text-align: center;
+            margin-bottom: 20px;
+            width: 800px;
+        }
+
+        .player-container img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .image-container {
+            height: 200px;
+            background-color: rgb(240, 240, 240);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .track-list {
+            margin-top: 20px;
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .track-list li {
+            cursor: pointer;
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .track-list li:hover {
+            background-color: #eee;
+        }
+
+        /* General button styles */
+        .btn {
+            display: inline-block;
+            font-weight: 400;
+            text-align: center;
+            vertical-align: middle;
+            cursor: pointer;
+            padding: 0.375rem 0.75rem;
+            font-size: 1rem;
+            line-height: 1.5;
+            border-radius: 0.3rem;
+            border: 1px solid transparent;
+            text-decoration: none;
+            color: #fff;
+            background-color: #007bff;
+            /* Default primary color */
+            transition: all 0.2s ease-in-out;
+        }
+
+        /* Hover and focus effects */
+        .btn:hover,
+        .btn:focus {
+            background-color: #0056b3;
+            border-color: #0056b3;
+            text-decoration: none;
+        }
+
+        /* Variants */
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            border-color: #6c757d;
+        }
+
+        .btn-success {
+            background-color: #28a745;
+            border-color: #28a745;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+
+        .btn-warning {
+            background-color: #ffc107;
+            border-color: #ffc107;
+            color: #212529;
+        }
+
+        .btn-info {
+            background-color: #17a2b8;
+            border-color: #17a2b8;
+        }
+
+        .btn-light {
+            background-color: #f8f9fa;
+            border-color: #f8f9fa;
+            color: #212529;
+        }
+
+        .btn-dark {
+            background-color: #343a40;
+            border-color: #343a40;
+        }
+
+        /* Disabled state */
+        .btn:disabled,
+        .btn.disabled {
+            opacity: 0.65;
+            pointer-events: none;
+        }
+
+        /* Size variants */
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+            line-height: 1.25;
+        }
+
+        .btn-lg {
+            padding: 0.5rem 1rem;
+            font-size: 1.25rem;
+            line-height: 1.5;
+        }
+
+        /* Outline variant */
+        .btn-outline-primary {
+            color: #007bff;
+            background-color: transparent;
+            border-color: #007bff;
+        }
+
+        .btn-outline-primary:hover,
+        .btn-outline-primary:focus {
+            background-color: #007bff;
+            color: #fff;
+        }
+
+        .btn-outline-secondary {
+            color: #6c757d;
+            background-color: transparent;
+            border-color: #6c757d;
+        }
+
+        .btn-outline-secondary:hover,
+        .btn-outline-secondary:focus {
+            background-color: #6c757d;
+            color: #fff;
+        }
+        .btn-100
+        {
+            width: 100px;
+        }
+
+        /* Add more outline variants as needed */
+    </style>
+</head>
+
+<body>
+    <div class="player-container">
+        <h2 id="track-title">Select a track</h2>
+        <div class="image-container">
+            <img id="track-image" src="" alt="Track Image" style="display:none;">
+        </div>
+        <audio id="audio-player" controls style="width: 100%; display:none;"></audio>
+        <div class="controls">
+            <button class="btn btn-primary btn-100" id="prev-btn">Previous</button>
+            <button class="btn btn-primary btn-100" id="next-btn">Next</button>
+        </div>
+    </div>
+    <ul class="track-list" id="track-list"></ul>
+
+    <script>
+        const data = [
+            {
+                "title": "Juzz 1 Al Quran dan Terjemahan Indonesia",
+                "orig": "Juzz 1 Al Quran dan Terjemahan Indonesia.mp3",
+                "image": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%201%20Al%20Quran%20dan%20Terjemahan%20Indonesia%20Audio.png",
+                "duration": 6135,
+                "sources": [
+                    {
+                        "file": "https://archive.org/serve/al-quran-dan-terjemahan-indonesia-audio/Juzz%201%20Al%20Quran%20dan%20Terjemahan%20Indonesia%20Audio.mp3",
+                        "type": "mp3",
+                        "height": "0",
+                        "width": "0"
+                    }
+                ]
+            },
+            {
+                "title": "Juzz 2 Al Quran dan Terjemahan Indonesia",
+                "orig": "Juzz 2 Al Quran dan Terjemahan Indonesia.mp3",
+                "image": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%202%20Al%20Quran%20dan%20Terjemahan%20Indonesia%20audio.png",
+                "duration": 5821,
+                "sources": [
+                    {
+                        "file": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%202%20Al%20Quran%20dan%20Terjemahan%20Indonesia%20audio.mp3",
+                        "type": "mp3",
+                        "height": "0",
+                        "width": "0"
+                    }
+                ]
+            },
+            {
+                "title": "Juzz 3 Al Quran dan Terjemahan Indonesia",
+                "orig": "Juzz 3 Al Quran dan Terjemahan Indonesia.mp3",
+                "image": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%203%20Al%20Quran%20dan%20Terjemahan%20Indonesia%20audio.png",
+                "duration": 6195,
+                "sources": [
+                    {
+                        "file": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%203%20Al%20Quran%20dan%20Terjemahan%20Indonesia%20audio.mp3",
+                        "type": "mp3",
+                        "height": "0",
+                        "width": "0"
+                    }
+                ]
+            },
+            {
+                "title": "Juzz 4 Al Quran dan Terjemahan Indonesia",
+                "orig": "Juzz 4 Al Quran dan Terjemahan Indonesia.mp3",
+                "image": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%204%20Al%20Quran%20dan%20Terjemahan%20Indonesia%20audio.png",
+                "duration": "6436.47",
+                "sources": [
+                    {
+                        "file": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%204%20Al%20Quran%20dan%20Terjemahan%20Indonesia%20audio.mp3",
+                        "type": "mp3",
+                        "height": "0",
+                        "width": "0"
+                    }
+                ]
+            },
+            {
+                "title": "Juzz 5 Al Quran dan Terjemahan Indonesia",
+                "orig": "Juzz 5 Al Quran dan Terjemahan Indonesia.mp3",
+                "image": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%205%20Al%20Quran%20dan%20Terjemahan%20Indonesia%20audio.png",
+                "duration": "6224.46",
+                "sources": [
+                    {
+                        "file": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%205%20Al%20Quran%20dan%20Terjemahan%20Indonesia%20audio.mp3",
+                        "type": "mp3",
+                        "height": "0",
+                        "width": "0"
+                    }
+                ]
+            },
+            {
+                "title": "Juzz 6  Al Quran dan Terjemahan Indonesia",
+                "orig": "Juzz 6  Al Quran dan Terjemahan Indonesia.mp3",
+                "image": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%206%20%20Al%20Quran%20dan%20Terjemahan%20Indonesia%20audio.png",
+                "duration": "6255.41",
+                "sources": [
+                    {
+                        "file": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%206%20%20Al%20Quran%20dan%20Terjemahan%20Indonesia%20audio.mp3",
+                        "type": "mp3",
+                        "height": "0",
+                        "width": "0"
+                    }
+                ]
+            },
+            {
+                "title": "Juzz 7 Al Quran dan Terjemahan Indonesia",
+                "orig": "Juzz 7 Al Quran dan Terjemahan Indonesia.mp3",
+                "image": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%207%20Al%20Quran%20dan%20Terjemahan%20Indonesia.png",
+                "duration": 7342,
+                "sources": [
+                    {
+                        "file": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%207%20Al%20Quran%20dan%20Terjemahan%20Indonesia.mp3",
+                        "type": "mp3",
+                        "height": "0",
+                        "width": "0"
+                    }
+                ]
+            },
+            {
+                "title": "Juzz 8 Al Quran dan Terjemahan Indonesia",
+                "orig": "Juzz 8 Al Quran dan Terjemahan Indonesia.mp3",
+                "image": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%208%20Al%20Quran%20dan%20Terjemahan%20Indonesia.png",
+                "duration": 6703,
+                "sources": [
+                    {
+                        "file": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%208%20Al%20Quran%20dan%20Terjemahan%20Indonesia.mp3",
+                        "type": "mp3",
+                        "height": "0",
+                        "width": "0"
+                    }
+                ]
+            },
+            {
+                "title": "Juzz 9 Al Quran dan Terjemahan Indonesia",
+                "orig": "Juzz 9 Al Quran dan Terjemahan Indonesia.mp3",
+                "image": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%209%20Al%20Quran%20dan%20Terjemahan%20Indonesia.png",
+                "duration": 6811,
+                "sources": [
+                    {
+                        "file": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%209%20Al%20Quran%20dan%20Terjemahan%20Indonesia.mp3",
+                        "type": "mp3",
+                        "height": "0",
+                        "width": "0"
+                    }
+                ]
+            },
+            {
+                "title": "Juzz 10 Al Quran dan Terjemahan Indonesia",
+                "orig": "Juzz 10 Al Quran dan Terjemahan Indonesia.mp3",
+                "image": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2010%20Al%20Quran%20dan%20Terjemahan%20Indonesia.png",
+                "duration": "6487.28",
+                "sources": [
+                    {
+                        "file": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2010%20Al%20Quran%20dan%20Terjemahan%20Indonesia.mp3",
+                        "type": "mp3",
+                        "height": "0",
+                        "width": "0"
+                    }
+                ]
+            },
+            {
+                "title": "Juzz 11 Al Quran dan Terjemahan Indonesia",
+                "orig": "Juzz 11 Al Quran dan Terjemahan Indonesia.mp3",
+                "image": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2011%20Al%20Quran%20dan%20Terjemahan%20Indonesia.png",
+                "duration": "7112.15",
+                "sources": [
+                    {
+                        "file": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2011%20Al%20Quran%20dan%20Terjemahan%20Indonesia.mp3",
+                        "type": "mp3",
+                        "height": "0",
+                        "width": "0"
+                    }
+                ]
+            },
+            {
+                "title": "Juzz 12 Al Quran dan Terjemahan Indonesia",
+                "orig": "Juzz 12 Al Quran dan Terjemahan Indonesia.mp3",
+                "image": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2012%20Al%20Quran%20dan%20Terjemahan%20Indonesia.png",
+                "duration": 7273,
+                "sources": [
+                    {
+                        "file": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2012%20Al%20Quran%20dan%20Terjemahan%20Indonesia.mp3",
+                        "type": "mp3",
+                        "height": "0",
+                        "width": "0"
+                    }
+                ]
+            },
+            {
+                "title": "Juzz 13 Al Quran dan Terjemahan Indonesia",
+                "orig": "Juzz 13 Al Quran dan Terjemahan Indonesia.mp3",
+                "image": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2013%20Al%20Quran%20dan%20Terjemahan%20Indonesia.png",
+                "duration": "6982.24",
+                "sources": [
+                    {
+                        "file": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2013%20Al%20Quran%20dan%20Terjemahan%20Indonesia.mp3",
+                        "type": "mp3",
+                        "height": "0",
+                        "width": "0"
+                    }
+                ]
+            },
+            {
+                "title": "Juzz 14 Al Quran dan Terjemahan Indonesia",
+                "orig": "Juzz 14 Al Quran dan Terjemahan Indonesia.mp3",
+                "image": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2014%20Al%20Quran%20dan%20Terjemahan%20Indonesia.png",
+                "duration": 6798,
+                "sources": [
+                    {
+                        "file": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2014%20Al%20Quran%20dan%20Terjemahan%20Indonesia.mp3",
+                        "type": "mp3",
+                        "height": "0",
+                        "width": "0"
+                    }
+                ]
+            },
+            {
+                "title": "Juzz 15 Al Quran dan Terjemahan Indonesia",
+                "orig": "Juzz 15 Al Quran dan Terjemahan Indonesia.mp3",
+                "image": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2015%20Al%20Quran%20dan%20Terjemahan%20Indonesia.png",
+                "duration": 6624,
+                "sources": [
+                    {
+                        "file": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2015%20Al%20Quran%20dan%20Terjemahan%20Indonesia.mp3",
+                        "type": "mp3",
+                        "height": "0",
+                        "width": "0"
+                    }
+                ]
+            },
+            {
+                "title": "Juzz 16 Al Quran dan Terjemahan Indonesia",
+                "orig": "Juzz 16 Al Quran dan Terjemahan Indonesia.mp3",
+                "image": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2016%20Al%20Quran%20dan%20Terjemahan%20Indonesia.png",
+                "duration": "7180.15",
+                "sources": [
+                    {
+                        "file": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2016%20Al%20Quran%20dan%20Terjemahan%20Indonesia.mp3",
+                        "type": "mp3",
+                        "height": "0",
+                        "width": "0"
+                    }
+                ]
+            },
+            {
+                "title": "Juzz 17 Al Quran dan Terjemahan Indonesia",
+                "orig": "Juzz 17 Al Quran dan Terjemahan Indonesia.mp3",
+                "image": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2017%20Al%20Quran%20dan%20Terjemahan%20Indonesia.png",
+                "duration": 6657,
+                "sources": [
+                    {
+                        "file": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2017%20Al%20Quran%20dan%20Terjemahan%20Indonesia.mp3",
+                        "type": "mp3",
+                        "height": "0",
+                        "width": "0"
+                    }
+                ]
+            },
+            {
+                "title": "Juzz 18 Al Quran dan Terjemahan Indonesia",
+                "orig": "Juzz 18 Al Quran dan Terjemahan Indonesia.mp3",
+                "image": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2018%20Al%20Quran%20dan%20Terjemahan%20Indonesia.png",
+                "duration": 7205,
+                "sources": [
+                    {
+                        "file": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2018%20Al%20Quran%20dan%20Terjemahan%20Indonesia.mp3",
+                        "type": "mp3",
+                        "height": "0",
+                        "width": "0"
+                    }
+                ]
+            },
+            {
+                "title": "Juzz 19 Al Quran dan Terjemahan Indonesia",
+                "orig": "Juzz 19 Al Quran dan Terjemahan Indonesia.mp3",
+                "image": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2019%20Al%20Quran%20dan%20Terjemahan%20Indonesia.png",
+                "duration": 7430,
+                "sources": [
+                    {
+                        "file": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2019%20Al%20Quran%20dan%20Terjemahan%20Indonesia.mp3",
+                        "type": "mp3",
+                        "height": "0",
+                        "width": "0"
+                    }
+                ]
+            },
+            {
+                "title": "Juzz 20 Al Quran dan Terjemahan Indonesia",
+                "orig": "Juzz 20 Al Quran dan Terjemahan Indonesia.mp3",
+                "image": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2020%20Al%20Quran%20dan%20Terjemahan%20Indonesia.png",
+                "duration": 6892,
+                "sources": [
+                    {
+                        "file": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2020%20Al%20Quran%20dan%20Terjemahan%20Indonesia.mp3",
+                        "type": "mp3",
+                        "height": "0",
+                        "width": "0"
+                    }
+                ]
+            },
+            {
+                "title": "Juzz 21 Al Quran dan Terjemahan Indonesia",
+                "orig": "Juzz 21 Al Quran dan Terjemahan Indonesia.mp3",
+                "image": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2021%20Al%20Quran%20dan%20Terjemahan%20Indonesia.png",
+                "duration": 7161,
+                "sources": [
+                    {
+                        "file": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2021%20Al%20Quran%20dan%20Terjemahan%20Indonesia.mp3",
+                        "type": "mp3",
+                        "height": "0",
+                        "width": "0"
+                    }
+                ]
+            },
+            {
+                "title": "Juzz 22 Al Quran dan Terjemahan Indonesia",
+                "orig": "Juzz 22 Al Quran dan Terjemahan Indonesia.mp3",
+                "image": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2022%20Al%20Quran%20dan%20Terjemahan%20Indonesia.png",
+                "duration": 7637,
+                "sources": [
+                    {
+                        "file": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2022%20Al%20Quran%20dan%20Terjemahan%20Indonesia.mp3",
+                        "type": "mp3",
+                        "height": "0",
+                        "width": "0"
+                    }
+                ]
+            },
+            {
+                "title": "Juzz 23 Al Quran dan Terjemahan Indonesia",
+                "orig": "Juzz 23 Al Quran dan Terjemahan Indonesia.mp3",
+                "image": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2023%20Al%20Quran%20dan%20Terjemahan%20Indonesia.png",
+                "duration": "8099.32",
+                "sources": [
+                    {
+                        "file": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2023%20Al%20Quran%20dan%20Terjemahan%20Indonesia.mp3",
+                        "type": "mp3",
+                        "height": "0",
+                        "width": "0"
+                    }
+                ]
+            },
+            {
+                "title": "Juzz 24 Al Quran dan Terjemahan Indonesia",
+                "orig": "Juzz 24 Al Quran dan Terjemahan Indonesia.mp3",
+                "image": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2024%20Al%20Quran%20dan%20Terjemahan%20Indonesia.png",
+                "duration": 6859,
+                "sources": [
+                    {
+                        "file": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2024%20Al%20Quran%20dan%20Terjemahan%20Indonesia.mp3",
+                        "type": "mp3",
+                        "height": "0",
+                        "width": "0"
+                    }
+                ]
+            },
+            {
+                "title": "Juzz 25 Al Quran dan Terjemahan Indonesia",
+                "orig": "Juzz 25 Al Quran dan Terjemahan Indonesia.mp3",
+                "image": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2025%20Al%20Quran%20dan%20Terjemahan%20Indonesia.png",
+                "duration": "7425.28",
+                "sources": [
+                    {
+                        "file": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2025%20Al%20Quran%20dan%20Terjemahan%20Indonesia.mp3",
+                        "type": "mp3",
+                        "height": "0",
+                        "width": "0"
+                    }
+                ]
+            },
+            {
+                "title": "Juzz 26 Al Quran dan Terjemahan Indonesia",
+                "orig": "Juzz 26 Al Quran dan Terjemahan Indonesia.mp3",
+                "image": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2026%20Al%20Quran%20dan%20Terjemahan%20Indonesia.png",
+                "duration": 7354,
+                "sources": [
+                    {
+                        "file": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2026%20Al%20Quran%20dan%20Terjemahan%20Indonesia.mp3",
+                        "type": "mp3",
+                        "height": "0",
+                        "width": "0"
+                    }
+                ]
+            },
+            {
+                "title": "Juzz 27 Al Quran dan Terjemahan Indonesia",
+                "orig": "Juzz 27 Al Quran dan Terjemahan Indonesia.mp3",
+                "image": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2027%20Al%20Quran%20dan%20Terjemahan%20Indonesia.png",
+                "duration": "7488.42",
+                "sources": [
+                    {
+                        "file": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2027%20Al%20Quran%20dan%20Terjemahan%20Indonesia.mp3",
+                        "type": "mp3",
+                        "height": "0",
+                        "width": "0"
+                    }
+                ]
+            },
+            {
+                "title": "Juzz 28 Al Quran dan Terjemahan Indonesia",
+                "orig": "Juzz 28 Al Quran dan Terjemahan Indonesia.mp3",
+                "image": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2028%20Al%20Quran%20dan%20Terjemahan%20Indonesia.png",
+                "duration": 7026,
+                "sources": [
+                    {
+                        "file": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2028%20Al%20Quran%20dan%20Terjemahan%20Indonesia.mp3",
+                        "type": "mp3",
+                        "height": "0",
+                        "width": "0"
+                    }
+                ]
+            },
+            {
+                "title": "Juzz 29 Al Quran dan Terjemahan Indonesia",
+                "orig": "Juzz 29 Al Quran dan Terjemahan Indonesia.mp3",
+                "image": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2029%20Al%20Quran%20dan%20Terjemahan%20Indonesia.png",
+                "duration": 7953,
+                "sources": [
+                    {
+                        "file": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2029%20Al%20Quran%20dan%20Terjemahan%20Indonesia.mp3",
+                        "type": "mp3",
+                        "height": "0",
+                        "width": "0"
+                    }
+                ]
+            },
+            {
+                "title": "Juzz 30 Al Quran dan Terjemahan Indonesia",
+                "orig": "Juzz 30 Al Quran dan Terjemahan Indonesia.mp3",
+                "image": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2030%20%20Juzz%20Amma%20%20Al%20Quran%20dan%20Terjemahan%20Indonesia%20%20Audio%20.png",
+                "duration": 7526,
+                "sources": [
+                    {
+                        "file": "https://archive.org/download/al-quran-dan-terjemahan-indonesia-audio/Juzz%2030%20%20Juzz%20Amma%20%20Al%20Quran%20dan%20Terjemahan%20Indonesia%20%20Audio%20.mp3",
+                        "type": "mp3",
+                        "height": "0",
+                        "width": "0"
+                    }
+                ]
+            }
+        ];
+
+        const audioPlayer = document.getElementById('audio-player');
+        const trackTitle = document.getElementById('track-title');
+        const trackImage = document.getElementById('track-image');
+        const trackList = document.getElementById('track-list');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+
+        let currentTrackIndex = 0;
+
+        function loadTrack(index) {
+            const track = data[index];
+            trackTitle.textContent = track.title;
+            trackImage.src = track.image;
+            trackImage.style.display = "block";
+            audioPlayer.src = track.sources[0].file;
+            audioPlayer.style.display = "block";
+        }
+
+        function populateTrackList() {
+            data.forEach((track, index) => {
+                const listItem = document.createElement('li');
+                listItem.textContent = track.title;
+                listItem.addEventListener('click', () => {
+                    currentTrackIndex = index;
+                    loadTrack(currentTrackIndex);
+                    audioPlayer.play();
+                });
+                trackList.appendChild(listItem);
+            });
+        }
+
+        prevBtn.addEventListener('click', () => {
+            currentTrackIndex = (currentTrackIndex - 1 + data.length) % data.length;
+            loadTrack(currentTrackIndex);
+            audioPlayer.play();
+        });
+
+        nextBtn.addEventListener('click', () => {
+            currentTrackIndex = (currentTrackIndex + 1) % data.length;
+            loadTrack(currentTrackIndex);
+            audioPlayer.play();
+        });
+
+        // Initialize player
+        populateTrackList();
+        loadTrack(currentTrackIndex);
+    </script>
+</body>
+
+</html>
